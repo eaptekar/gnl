@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: eaptekar <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: eaptekar <eaptekar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/07/01 15:48:59 by eaptekar          #+#    #+#             */
-/*   Updated: 2018/07/01 20:57:20 by eaptekar         ###   ########.fr       */
+/*   Updated: 2018/07/06 14:18:08 by eaptekar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,13 +18,18 @@ int		main(int ac, char **av)
 	int		fd;
 	char	*line;
 
+	int i = 0;
+	int ret;
+
 	if (ac != 2)
 		return (0);
 	fd = open(av[1], O_RDONLY);
-	while (get_next_line(fd, &line) == 1)
+	while (i < 6)
 	{
+		ret = get_next_line(fd, &line);
 		ft_putendl(line);
 		free(line);
+		i++;
 	}
 	close (fd);
 	return (0);

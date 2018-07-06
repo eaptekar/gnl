@@ -3,60 +3,117 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: eaptekar <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: eaptekar <eaptekar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/06/28 17:32:35 by eaptekar          #+#    #+#             */
-/*   Updated: 2018/07/01 21:09:35 by eaptekar         ###   ########.fr       */
+/*   Updated: 2018/07/06 14:20:59 by eaptekar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*search_newline(char *newline, char *static_string)
+char		*get_line(char **content)
 {
-	int		start;
-	int		stop;
+	int		end;
+	char	*result_line;
 
-	start = 0;
-	//need check the errors
-	if (static_string)
+	if (ft_strchr(*content, '\n'))
 	{
-		while (static_string[start])
-			start++;
+		end = ft_strchr(*content, '\n') - *content;
+		result_line = ft_strsub(*content, 0, end);
 	}
-	printf("START: %d\n", start);
-	stop = start + 1;
-	while (newline[stop] != '\n' && newline[stop] != '\0')
-		stop++;
-	printf("STOP: %d\n", stop);
-	if (newline[stop] == '\0')
-		return (NULL);
-	newline = ft_strsub(newline, start, stop);
-	return (newline);
+	else
+		result_line = ft_strdup(*content);
+	return (result_line);
 }
 
-int		get_next_line(const int fd, char **line)
+t_string	*ft_lststringnew(char *content, int filedesc)
 {
-	static char	*static_string = NULL;
-	char		*buffer;
-	char		*temp;
-	int			bytes;
-	
-	temp = ft_strnew(1);
-	if (!(buffer = ft_strnew(BUF_SIZE + 1)))
-		return (-1);
-	while ((bytes = read(fd, buffer, BUF_SIZE)))
+	t_string	*tmp;
+
+	if (!(tmp = (t_string*)malloc(sizeof(t_string))))
+		return (NULL);
+	if (!content)
 	{
-		buffer[bytes] = '\0';
-		temp = ft_strjoin(temp, buffer);
+		tmp->content = NULL;
+		tmp->filedesc = 0;
 	}
-	printf("----------------\n");
-	printf("TEXT: %s\n", temp);
-	printf("----------------\n");
-	if (!(*line = search_newline(temp, static_string)))
+	else
+	{
+		if (!(tmp->content = malloc(filedesc)))
+		{
+			free(tmp);
+			return (NULL);
+		}
+		ft_memmove(tmp->content, content, filedesc);
+		tmp->filedesc = filedesc;
+	}
+	tmp->next = NULL;
+	return (tmp);
+}
+
+
+t_string	*make_list(t_string **text, const int fd)
+{
+	t_string	*list;
+
+	if (*text == NULL)
+	{
+		*text = ft_lststringnew("\0", 0);
+		(*text)->filedesc = fd;
+		return (*text);
+	}
+	if ((*text)->filedesc != fd)
+	{
+		list = *text;
+		while (list->next)
+		{
+			if (list->filedesc == fd)
+				return (list);
+			list = list->next;
+		}
+		if (list->filedesc == fd)
+			return (list);
+		list->next = ft_lststringnew("\0", 0);
+		list->next->filedesc = fd;
+		return (list->next);
+	}
+	return (*text);
+}
+
+int				get_next_line(const int fd, char **line)
+{
+	static t_string	*text = NULL;
+	char			*buffer;
+	t_string		*temp;
+
+	if (fd < 0 || BUFF_SIZE < 1 || !line)
 		return (-1);
-	static_string = ft_strnew(1);
-	static_string = ft_strjoin(static_string, *line);
-	printf("STATIC: %s\n", static_string);
+	temp = make_list(&text, fd);
+	if (!(buffer = ft_strnew(BUFF_SIZE + 1)))
+		return (-1);
+	while ((temp->index = read(fd, buffer, BUFF_SIZE)))
+	{
+		if (temp->index < 0)
+			return (-1);
+		buffer[temp->index] = '\0';
+//		printf("buf: %s\n", buffer);  //!!!!!!
+		temp->content = NULL ? (temp->content = ft_strdup(buffer))\
+		 : (temp->content = ft_strjoin(temp->content, buffer));
+		 *line = get_line(&(temp->content));
+//		printf("temp: %s\n", temp->content);  //!!!!!
+		if (ft_strchr(buffer, '\n'))
+			break;
+	}
+	if (temp->content)
+	{
+		if (!(*line = get_line(&(temp->content))))
+			return (-1);
+	}
+	else
+		return (0);
+//	printf("STATIC: %s\n", text->content);  //!!!!!
+	// нужно исправить утечки памяти
+	free(buffer);
 	return (1);
 }

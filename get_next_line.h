@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: eaptekar <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: eaptekar <eaptekar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/06/28 17:30:54 by eaptekar          #+#    #+#             */
-/*   Updated: 2018/07/01 21:10:31 by eaptekar         ###   ########.fr       */
+/*   Updated: 2018/07/05 20:21:33 by eaptekar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,15 @@
 # include <sys/uio.h>
 # include "libft/includes/libft.h"
 
-# define BUF_SIZE 32
+# define BUFF_SIZE 32
+
+typedef struct	s_string
+{
+	char			*content;
+	int				index;
+	int				filedesc;
+	struct s_string	*next;
+}				t_string;
 
 int		get_next_line(const int fd, char **line);
 
