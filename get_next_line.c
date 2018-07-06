@@ -6,52 +6,73 @@
 /*   By: eaptekar <eaptekar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/06/28 17:32:35 by eaptekar          #+#    #+#             */
-/*   Updated: 2018/07/06 14:20:59 by eaptekar         ###   ########.fr       */
+/*   Updated: 2018/07/06 19:37:57 by eaptekar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char		*get_line(char **content)
+char		*get_line(char *content)
 {
 	int		end;
 	char	*result_line;
 
-	if (ft_strchr(*content, '\n'))
+	if (ft_strchr(content, '\n'))
 	{
-		end = ft_strchr(*content, '\n') - *content;
-		result_line = ft_strsub(*content, 0, end);
+		end = ft_strchr(content, '\n') - content;
+		result_line = ft_strsub(content, 0, end);
 	}
 	else
-		result_line = ft_strdup(*content);
+		result_line = ft_strdup(content);
 	return (result_line);
 }
 
-t_string	*ft_lststringnew(char *content, int filedesc)
+char	*join_free(char *content, char *buffer)
 {
-	t_string	*tmp;
+	int		i;
+	int		j;
+	char	*concat;
 
-	if (!(tmp = (t_string*)malloc(sizeof(t_string))))
+	i = 0;
+	j = 0;
+	if (!content || !buffer)
 		return (NULL);
-	if (!content)
+	if (!(concat = (char*)malloc(sizeof(char) * (ft_strlen(content) + ft_strlen(buffer) + 1))))
+		return (NULL);
+	while (content[i])
 	{
-		tmp->content = NULL;
-		tmp->filedesc = 0;
+		concat[i] = content[i];
+		i++;
 	}
-	else
-	{
-		if (!(tmp->content = malloc(filedesc)))
-		{
-			free(tmp);
-			return (NULL);
-		}
-		ft_memmove(tmp->content, content, filedesc);
-		tmp->filedesc = filedesc;
-	}
-	tmp->next = NULL;
-	return (tmp);
+	while (buffer[j])
+		concat[i++] = buffer[j++];
+	free(content);
+	concat[i] = '\0';
+	return (concat);
 }
 
+char		*ft_del_mem(char *content)
+{
+	size_t	l;
+	char	*arr;
+
+	l = 0;
+	if (ft_strchr(content, '\n'))
+	{
+		while (content[l] != '\n' && content[l])
+			l++;
+		if (!content[l + 1])
+		{
+			free(content);
+			return (NULL);
+		}
+		arr = ft_strdup(&content[l + 1]);
+		free(content);
+		content = ft_strdup(arr);
+		free(arr);
+	}
+	return (content);
+}
 
 t_string	*make_list(t_string **text, const int fd)
 {
@@ -59,7 +80,7 @@ t_string	*make_list(t_string **text, const int fd)
 
 	if (*text == NULL)
 	{
-		*text = ft_lststringnew("\0", 0);
+		*text = (t_string*)ft_lstnew(NULL, 0);
 		(*text)->filedesc = fd;
 		return (*text);
 	}
@@ -74,46 +95,38 @@ t_string	*make_list(t_string **text, const int fd)
 		}
 		if (list->filedesc == fd)
 			return (list);
-		list->next = ft_lststringnew("\0", 0);
+		list->next = (t_string*)ft_lstnew(NULL, 0);
 		list->next->filedesc = fd;
 		return (list->next);
 	}
 	return (*text);
 }
 
-int				get_next_line(const int fd, char **line)
+int			get_next_line(const int fd, char **line)
 {
 	static t_string	*text = NULL;
-	char			*buffer;
+	char			buffer[BUFF_SIZE + 1];
 	t_string		*temp;
 
 	if (fd < 0 || BUFF_SIZE < 1 || !line)
 		return (-1);
 	temp = make_list(&text, fd);
-	if (!(buffer = ft_strnew(BUFF_SIZE + 1)))
-		return (-1);
 	while ((temp->index = read(fd, buffer, BUFF_SIZE)))
 	{
 		if (temp->index < 0)
 			return (-1);
 		buffer[temp->index] = '\0';
-//		printf("buf: %s\n", buffer);  //!!!!!!
-		temp->content = NULL ? (temp->content = ft_strdup(buffer))\
-		 : (temp->content = ft_strjoin(temp->content, buffer));
-		 *line = get_line(&(temp->content));
-//		printf("temp: %s\n", temp->content);  //!!!!!
-		if (ft_strchr(buffer, '\n'))
-			break;
+		temp->content = !temp->content ? ft_strdup(buffer) : join_free(temp->content, buffer);
+		*line = get_line(temp->content);
+		if (ft_strchr(temp->content, '\n'))
+			return ((temp->content = ft_del_mem(temp->content)) ? 1 : 1);
+		free(*line);
 	}
 	if (temp->content)
-	{
-		if (!(*line = get_line(&(temp->content))))
-			return (-1);
-	}
+		*line = get_line(temp->content);
 	else
 		return (0);
-//	printf("STATIC: %s\n", text->content);  //!!!!!
-	// нужно исправить утечки памяти
-	free(buffer);
-	return (1);
+	if (ft_strchr(temp->content, '\n'))
+		return ((temp->content = ft_del_mem(temp->content)) ? 1 : 1);
+	return ((temp->content = NULL) ? 1 : 1);
 }
