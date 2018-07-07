@@ -1,33 +1,31 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.h                                    :+:      :+:    :+:   */
+/*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: eaptekar <eaptekar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/06/28 17:30:54 by eaptekar          #+#    #+#             */
-/*   Updated: 2018/07/07 15:52:09 by eaptekar         ###   ########.fr       */
+/*   Created: 2018/07/01 15:48:59 by eaptekar          #+#    #+#             */
+/*   Updated: 2018/07/07 15:50:46 by eaptekar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef GET_NEXT_LINE_H
-# define GET_NEXT_LINE_H
+#include "get_next_line.h"
+#include <fcntl.h>
 
-# include <stdlib.h>
-# include <sys/types.h>
-# include <sys/uio.h>
-# include "libft/includes/libft.h"
-
-# define BUFF_SIZE 32
-
-typedef struct	s_string
+int		main(int ac, char **av)
 {
-	char			*content;
-	int				index;
-	int				filedesc;
-	struct s_string	*next;
-}				t_string;
+	int		fd;
+	char	*line;
 
-int				get_next_line(const int fd, char **line);
-
-#endif
+	if (ac != 2)
+		return (0);
+	fd = open(av[1], O_RDONLY);
+	while (get_next_line(fd, &line) == 1)
+	{
+		ft_putendl(line);
+		free(line);
+	}
+	close (fd);
+	return (0);
+}

@@ -6,7 +6,7 @@
 /*   By: eaptekar <eaptekar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/06/28 17:32:35 by eaptekar          #+#    #+#             */
-/*   Updated: 2018/07/06 19:37:57 by eaptekar         ###   ########.fr       */
+/*   Updated: 2018/07/07 15:46:29 by eaptekar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,23 +27,21 @@ char		*get_line(char *content)
 	return (result_line);
 }
 
-char	*join_free(char *content, char *buffer)
+char		*join_free(char *content, char *buffer)
 {
 	int		i;
 	int		j;
 	char	*concat;
 
-	i = 0;
+	i = -1;
 	j = 0;
 	if (!content || !buffer)
 		return (NULL);
-	if (!(concat = (char*)malloc(sizeof(char) * (ft_strlen(content) + ft_strlen(buffer) + 1))))
+	if (!(concat = (char*)malloc(sizeof(char) * \
+		(ft_strlen(content) + ft_strlen(buffer) + 1))))
 		return (NULL);
-	while (content[i])
-	{
+	while (content[++i])
 		concat[i] = content[i];
-		i++;
-	}
 	while (buffer[j])
 		concat[i++] = buffer[j++];
 	free(content);
@@ -51,25 +49,25 @@ char	*join_free(char *content, char *buffer)
 	return (concat);
 }
 
-char		*ft_del_mem(char *content)
+char		*pass_lf(char *content)
 {
-	size_t	l;
-	char	*arr;
+	int		i;
+	char	*array;
 
-	l = 0;
+	i = 0;
 	if (ft_strchr(content, '\n'))
 	{
-		while (content[l] != '\n' && content[l])
-			l++;
-		if (!content[l + 1])
+		while (content[i] != '\n' && content[i])
+			i++;
+		if (!content[i + 1])
 		{
 			free(content);
 			return (NULL);
 		}
-		arr = ft_strdup(&content[l + 1]);
+		array = ft_strdup(&content[i + 1]);
 		free(content);
-		content = ft_strdup(arr);
-		free(arr);
+		content = ft_strdup(array);
+		free(array);
 	}
 	return (content);
 }
@@ -78,7 +76,7 @@ t_string	*make_list(t_string **text, const int fd)
 {
 	t_string	*list;
 
-	if (*text == NULL)
+	if (!*text)
 	{
 		*text = (t_string*)ft_lstnew(NULL, 0);
 		(*text)->filedesc = fd;
@@ -108,18 +106,17 @@ int			get_next_line(const int fd, char **line)
 	char			buffer[BUFF_SIZE + 1];
 	t_string		*temp;
 
-	if (fd < 0 || BUFF_SIZE < 1 || !line)
+	if (fd < 0 || BUFF_SIZE < 1 || !line || read(fd, buffer, 0) < 0)
 		return (-1);
 	temp = make_list(&text, fd);
-	while ((temp->index = read(fd, buffer, BUFF_SIZE)))
+	while ((temp->index = read(fd, buffer, BUFF_SIZE)) > 0)
 	{
-		if (temp->index < 0)
-			return (-1);
 		buffer[temp->index] = '\0';
-		temp->content = !temp->content ? ft_strdup(buffer) : join_free(temp->content, buffer);
+		temp->content = !temp->content ? ft_strdup(buffer) : \
+		join_free(temp->content, buffer);
 		*line = get_line(temp->content);
 		if (ft_strchr(temp->content, '\n'))
-			return ((temp->content = ft_del_mem(temp->content)) ? 1 : 1);
+			return ((temp->content = pass_lf(temp->content)) ? 1 : 1);
 		free(*line);
 	}
 	if (temp->content)
@@ -127,6 +124,6 @@ int			get_next_line(const int fd, char **line)
 	else
 		return (0);
 	if (ft_strchr(temp->content, '\n'))
-		return ((temp->content = ft_del_mem(temp->content)) ? 1 : 1);
+		return ((temp->content = pass_lf(temp->content)) ? 1 : 1);
 	return ((temp->content = NULL) ? 1 : 1);
 }

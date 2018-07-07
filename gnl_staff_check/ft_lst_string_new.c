@@ -1,33 +1,36 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.h                                    :+:      :+:    :+:   */
+/*   ft_lst_string_new.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: eaptekar <eaptekar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/06/28 17:30:54 by eaptekar          #+#    #+#             */
-/*   Updated: 2018/07/07 15:52:09 by eaptekar         ###   ########.fr       */
+/*   Created: 2018/07/06 18:21:06 by eaptekar          #+#    #+#             */
+/*   Updated: 2018/07/06 18:21:19 by eaptekar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef GET_NEXT_LINE_H
-# define GET_NEXT_LINE_H
-
-# include <stdlib.h>
-# include <sys/types.h>
-# include <sys/uio.h>
-# include "libft/includes/libft.h"
-
-# define BUFF_SIZE 32
-
-typedef struct	s_string
+t_string	*ft_lststringnew(char *content, int filedesc)
 {
-	char			*content;
-	int				index;
-	int				filedesc;
-	struct s_string	*next;
-}				t_string;
+	t_string	*tmp;
 
-int				get_next_line(const int fd, char **line);
-
-#endif
+	if (!(tmp = (t_string*)malloc(sizeof(t_string))))
+		return (NULL);
+	if (!content)
+	{
+		tmp->content = NULL;
+		tmp->filedesc = 0;
+	}
+	else
+	{
+		if (!(tmp->content = malloc(filedesc)))
+		{
+			free(tmp);
+			return (NULL);
+		}
+		ft_memmove(tmp->content, content, filedesc);
+		tmp->filedesc = filedesc;
+	}
+	tmp->next = NULL;
+	return (tmp);
+}
